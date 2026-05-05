@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prototype de revue de code IA</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #0f172a;
+            --card: #111827;
+            --muted: #cbd5e1;
+            --text: #f8fafc;
+            --accent: #38bdf8;
+            --border: #334155;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --error: #dc2626;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #0b1020;
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        .subtitle {
+            color: var(--muted);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 260px;
+            resize: vertical;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: #020617;
+            color: var(--text);
+            padding: 12px;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .actions {
+            margin-top: 16px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: var(--accent);
+            color: #082f49;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            filter: brightness(1.08);
+        }
+
+        .hint, .meta {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .flash-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px 0;
+        }
+
+        .flash {
+            padding: 12px 14px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid transparent;
+        }
+
+        .flash.success {
+            border-color: rgba(22, 163, 74, 0.4);
+            background: rgba(22, 163, 74, 0.12);
+        }
+
+        .flash.warning {
+            border-color: rgba(202, 138, 4, 0.4);
+            background: rgba(202, 138, 4, 0.12);
+        }
+
+        .flash.error {
+            border-color: rgba(220, 38, 38, 0.4);
+            background: rgba(220, 38, 38, 0.12);
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background: #020617;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: Consolas, "Courier New", monospace;
+        }
+
+        .meta-box {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .meta-box span {
+            background: #0b1225;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 0.92rem;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>Prototype de revue de code IA</h1>
+        <p class="subtitle">
+            Soumets l’ancienne version du code (<code>old_file</code>) et le diff (<code>diff_hunk</code>) ;
+            l’application génère un commentaire de review.
+        </p>
+        <p class="hint">
+            Modèle configuré : <strong>{{ model_name }}</strong> — device courant : <strong>{{ device }}</strong>
+        </p>
+    </div>
+
+    {% if page_error %}
+    <div class="card">
+        <div class="flash error">{{ page_error }}</div>
+    </div>
+    {% endif %}
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="card">
+            <ul class="flash-list">
+                {% for category, message in messages %}
+                <li class="flash {{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <h2>Formulaire</h2>
+        <form method="POST" action="{{ url_for('home') }}">
+            <div class="grid">
+                <div>
+                    <label for="old_file">old_file</label>
+                    <textarea id="old_file" name="old_file" placeholder="Colle ici l'ancienne version du fichier...">{{ old_file or '' }}</textarea>
+                </div>
+                <div>
+                    <label for="diff_hunk">diff_hunk</label>
+                    <textarea id="diff_hunk" name="diff_hunk" placeholder="Colle ici le diff de modification...">{{ diff_hunk or '' }}</textarea>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit">Analyser</button>
+            </div>
+
+            <p class="hint">
+                Astuce : utilise un vrai diff Git/Unified diff, par exemple avec les lignes <code>@@ ... @@</code>,
+                car le modèle CodeReviewer est conçu pour des tâches de revue de code basées sur <code>old_file</code>
+                et <code>diff_hunk</code>.
+            </p>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Résultat</h2>
+        {% if result %}
+            <pre>{{ result }}</pre>
+            {% if metadata %}
+            <div class="meta-box">
+                <span>modèle : {{ metadata.model_name }}</span>
+                <span>device : {{ metadata.device }}</span>
+                <span>tokens entrée : {{ metadata.input_tokens }}</span>
+                <span>tokens sortie : {{ metadata.output_tokens }}</span>
+            </div>
+            {% endif %}
+        {% else %}
+            <p class="hint">Aucun résultat pour le moment. Lance une analyse pour afficher le commentaire généré.</p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h2>Exemple d’entrée</h2>
+        <h3>old_file</h3>
+        <pre>import torch</pre>
+        <h3>diff_hunk</h3>
+        <pre>@@ -1 +1,2 @@
+ import torch
++import torch.nn as nn</pre>
+        <p class="hint">
+            Exemple pratique : le commentaire attendu peut signaler que l’import <code>torch.nn</code> n’est peut-être
+            pas nécessaire.
+        </p>
+    </div>
+
+    <div class="card">
+        <h2>Instructions d’utilisation</h2>
+        <ol>
+            <li>Colle la version précédente dans <code>old_file</code>.</li>
+            <li>Colle le changement exact dans <code>diff_hunk</code>.</li>
+            <li>Clique sur <strong>Analyser</strong>.</li>
+            <li>Lis le commentaire généré puis vérifie-le manuellement avant usage réel.</li>
+        </ol>
+    </div>
+</div>
+</body>
+</html>
