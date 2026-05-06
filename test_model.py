@@ -36,7 +36,6 @@ def resolve_device(requested: str) -> torch.device:
         requested = "cpu"
     return torch.device(requested)
 
-@staticmethod
 def build_prompt(old_file: str, diff_hunk: str) -> str:
     old_file = old_file.strip()
     diff_hunk = diff_hunk.strip()
@@ -231,4 +230,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
- echo "# test"
