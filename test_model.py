@@ -36,6 +36,7 @@ def resolve_device(requested: str) -> torch.device:
         requested = "cpu"
     return torch.device(requested)
 
+@staticmethod
 def build_prompt(old_file: str, diff_hunk: str) -> str:
     old_file = old_file.strip()
     diff_hunk = diff_hunk.strip()
@@ -182,8 +183,6 @@ def parse_args() -> argparse.Namespace:
         help="Répertoire de cache optionnel pour Hugging Face.",
     )
     return parser.parse_args()
-
-
 def main() -> int:
     args = parse_args()
     device = resolve_device(args.device)
@@ -232,3 +231,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+ echo "# test"
