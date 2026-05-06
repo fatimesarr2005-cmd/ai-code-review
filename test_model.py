@@ -182,8 +182,6 @@ def parse_args() -> argparse.Namespace:
         help="Répertoire de cache optionnel pour Hugging Face.",
     )
     return parser.parse_args()
-
-
 def main() -> int:
     args = parse_args()
     device = resolve_device(args.device)
